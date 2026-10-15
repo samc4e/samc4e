@@ -61,8 +61,8 @@ Open source is how I'm learning to read other people's code, and problem solving
 <div align="center">
 
 <table><tr>
-<td width="50%" align="left"><img src="https://github-readme-stats-fast.vercel.app/api?username=sameerchore&show_icons=true&show=prs_merged&hide=stars&hide_rank=true&hide_border=true&bg_color=00000000&title_color=9953EA&icon_color=9953EA&text_color=C79DF1&ring_color=9953EA" width="100%" height="195" alt="Sameer's GitHub stats, including all-time merged pull requests" /></td>
-<td width="50%" align="right"><img src="https://github-readme-stats-fast.vercel.app/api/top-langs/?username=sameerchore&layout=compact&hide=C%2B%2B&hide_border=true&bg_color=00000000&title_color=9953EA&text_color=C79DF1&langs_count=8" width="100%" height="195" alt="Most used languages, excluding C++" /></td>
+<td width="50%" align="left"><img src="https://github-readme-stats-fast.vercel.app/api?username=samc4e&show_icons=true&show=prs_merged&hide=stars&hide_rank=true&hide_border=true&bg_color=00000000&title_color=9953EA&icon_color=9953EA&text_color=C79DF1&ring_color=9953EA" width="100%" height="195" alt="Sameer's GitHub stats, including all-time merged pull requests" /></td>
+<td width="50%" align="right"><img src="https://github-readme-stats-fast.vercel.app/api/top-langs/?username=samc4e&layout=compact&hide=C%2B%2B&hide_border=true&bg_color=00000000&title_color=9953EA&text_color=C79DF1&langs_count=8" width="100%" height="195" alt="Most used languages, excluding C++" /></td>
 </tr></table>
 
 </div>

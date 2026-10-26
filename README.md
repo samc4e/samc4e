@@ -8,8 +8,8 @@
 
 <!--
   Social badges — uncomment and fill in your handle to add a row here:
-  <a href="https://linkedin.com/in/YOUR-HANDLE"><img src="https://img.shields.io/badge/LinkedIn-9953EA?style=for-the-badge&logo=linkedin&logoColor=ECDDFD" alt="LinkedIn" /></a>
-  <a href="https://leetcode.com/u/YOUR-HANDLE"><img src="https://img.shields.io/badge/LeetCode-6E1FA3?style=for-the-badge&logo=leetcode&logoColor=ECDDFD" alt="LeetCode" /></a>
+  <a href="https://linkedin.com/in/YOUR-HANDLE"><img src="https://img.shields.io/badge/LinkedIn-141417?style=for-the-badge&logo=linkedin&logoColor=E58AA2" alt="LinkedIn" /></a>
+  <a href="https://leetcode.com/u/samc4e"><img src="https://img.shields.io/badge/LeetCode-141417?style=for-the-badge&logo=leetcode&logoColor=E58AA2" alt="LeetCode" /></a>
 -->
 
 </div>

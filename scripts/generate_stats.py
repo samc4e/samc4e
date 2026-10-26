@@ -20,10 +20,10 @@ HIDE_LANGS = {"C++"}  # kept out of the language breakdown, as on the old card
 HEAT_WEEKS = 24
 SHORT_NAMES = {"Jupyter Notebook": "Jupyter"}
 
-P, LIGHT, PALE = "#9953EA", "#C79DF1", "#ECDDFD"
-LANG_SHADES = ["#ECDDFD", "#C79DF1", "#A66BEE", "#8B4FE0", "#6E1FA3", "#4C1D95"]
-HEAT = ["#1E1230", "#6230B0", "#8B4FE0", "#B98AF4", "#E4D0FD"]  # ramp validated against the card surface
-LINE = "#A66BEE"
+P, LIGHT, PALE = "#E58AA2", "#C4C4CC", "#F6F6F8"  # blush, frost, snow — from the avatar
+LANG_SHADES = ["#FCE7EC", "#F2B8C6", "#E58AA2", "#C9607E", "#A3405F", "#7A2A44"]
+HEAT = ["#202026", "#C9607E", "#E58AA2", "#F2B8C6", "#FCE7EC"]  # ramp validated against the card surface
+LINE = "#D46685"
 SANS = '-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif'
 MONO = 'ui-monospace,SFMono-Regular,"JetBrains Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace'
 
@@ -161,7 +161,7 @@ def languages(data):
     x0, w = 696, 276
     out = [f'<text x="{x0}" y="70" font-size="11" font-family=\'{MONO}\' letter-spacing="2.5" font-weight="700" fill="{PALE}">TOP LANGUAGES</text>',
            f'<clipPath id="bar"><rect x="{x0}" y="84" width="{w}" height="10" rx="5"/></clipPath>',
-           f'<rect x="{x0}" y="84" width="{w}" height="10" rx="5" fill="#1E1230"/><g clip-path="url(#bar)">']
+           f'<rect x="{x0}" y="84" width="{w}" height="10" rx="5" fill="#202026"/><g clip-path="url(#bar)">']
     x = x0
     for i, (name, b) in enumerate(top):
         seg = w * b / total
@@ -208,10 +208,10 @@ def trend(data):
     pi = totals.index(max(totals))
     px, py = pts[pi]
     anchor = "end" if px > x1 - 60 else "start" if px < x0 + 60 else "middle"
-    out.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="4.5" fill="{LINE}" stroke="#120920" stroke-width="2"/>'
+    out.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="4.5" fill="{LINE}" stroke="#08080A" stroke-width="2"/>'
                f'<text x="{px:.1f}" y="{py - 10:.1f}" text-anchor="{anchor}" font-size="10.5" font-weight="700" fill="{PALE}">peak {max(totals)}</text>')
     lx, ly = pts[-1]
-    out.append(f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="4" fill="{PALE}" stroke="#120920" stroke-width="2"/>')
+    out.append(f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="4" fill="{PALE}" stroke="#08080A" stroke-width="2"/>')
 
     active_weeks = sum(1 for t in totals if t)
     side = [(max(totals), "BEST WEEK"), (f"{sum(totals) / len(totals):.1f}", "WEEKLY AVERAGE"),
@@ -228,7 +228,7 @@ def card(h, title, aside, body, label):
     """Shared frame for every generated card: surface, glow, hairline border, header row."""
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 {h}" width="1000" height="{h}" role="img" aria-label="{escape(label)}">
 <defs>
-  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#140A22"/><stop offset="1" stop-color="#0A0612"/></linearGradient>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#141417"/><stop offset="1" stop-color="#08080A"/></linearGradient>
   <radialGradient id="glow"><stop offset="0" stop-color="{P}" stop-opacity="0.32"/><stop offset="1" stop-color="{P}" stop-opacity="0"/></radialGradient>
   <linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{LINE}" stop-opacity="0.4"/><stop offset="1" stop-color="{LINE}" stop-opacity="0"/></linearGradient>
   <clipPath id="card"><rect x="1" y="1" width="998" height="{h - 2}" rx="20"/></clipPath>

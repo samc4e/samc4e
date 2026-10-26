@@ -19,8 +19,8 @@ FACTS = [
 STACK = ["C++", "Java", "Python", "JavaScript", "Node.js", "Go", "Rust", "Git", "Linux", "Docker"]
 LEETCODE_USER = "samc4e"
 
-P, LIGHT, PALE = "#9953EA", "#C79DF1", "#ECDDFD"
-DIFF = {"Easy": "#E4D0FD", "Medium": "#B98AF4", "Hard": "#8B4FE0"}  # ordinal ramp validated against the surface
+P, LIGHT, PALE = "#E58AA2", "#C4C4CC", "#F6F6F8"  # blush, frost, snow — from the avatar
+DIFF = {"Easy": "#FCE7EC", "Medium": "#F2B8C6", "Hard": "#E58AA2"}  # ordinal ramp validated against the surface
 SANS = '-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif'
 MONO = 'ui-monospace,SFMono-Regular,Menlo,Consolas,"DejaVu Sans Mono",monospace'
 W, H = 1000, 340
@@ -80,7 +80,7 @@ def build(lc):
         for i, (k, v) in enumerate(FACTS))
     return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}" role="img" aria-label="{escape(NAME)} — {escape(TAGLINE)}. LeetCode: {lc["solved"]} problems solved.">
 <defs>
-  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#140A22"/><stop offset="1" stop-color="#0A0612"/></linearGradient>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#141417"/><stop offset="1" stop-color="#08080A"/></linearGradient>
   <radialGradient id="glow" cx="0.15" cy="0.1" r="0.7"><stop offset="0" stop-color="{P}" stop-opacity="0.22"/><stop offset="1" stop-color="{P}" stop-opacity="0"/></radialGradient>
   <linearGradient id="nameGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{PALE}"/><stop offset="1" stop-color="{LIGHT}"/></linearGradient>
   <linearGradient id="rule" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{P}"/><stop offset="1" stop-color="{P}" stop-opacity="0"/></linearGradient>

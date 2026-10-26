@@ -1,6 +1,6 @@
 <div align="center">
 
-<a href="https://github.com/samc4e?tab=repositories"><img src="assets/hero.svg" width="100%" alt="Sameer Chore — Software Developer, Open Source Contributor, Google Student Ambassador" /></a>
+<a href="https://github.com/samc4e?tab=repositories"><img src="assets/hero.svg" width="100%" alt="Sameer Chore — Software Developer and Open Source Contributor, with LeetCode stats" /></a>
 
 <img src="assets/stats.svg" width="100%" alt="Live GitHub stats: contributions, merged PRs, activity heatmap and top languages" />
 

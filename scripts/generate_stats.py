@@ -5,22 +5,37 @@ Local run: GITHUB_TOKEN=<token> python3 scripts/generate_stats.py
 """
 import json
 import os
+import sys
 import urllib.request
 from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from xml.sax.saxutils import escape
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import build_hero  # noqa: E402
+
 LOGIN = "samc4e"
 HIDE_LANGS = {"C++"}  # kept out of the language breakdown, as on the old card
 HEAT_WEEKS = 24
 SHORT_NAMES = {"Jupyter Notebook": "Jupyter"}
 
-P, LIGHT, PALE, HOT = "#9953EA", "#C79DF1", "#ECDDFD", "#D946EF"
-LANG_SHADES = [PALE, LIGHT, P, HOT, "#7C3AED", "#5B21B6"]
+P, LIGHT, PALE = "#9953EA", "#C79DF1", "#ECDDFD"
+LANG_SHADES = ["#ECDDFD", "#C79DF1", "#A66BEE", "#8B4FE0", "#6E1FA3", "#4C1D95"]
 HEAT = ["#1E1230", "#6230B0", "#8B4FE0", "#B98AF4", "#E4D0FD"]  # ramp validated against the card surface
 LINE = "#A66BEE"
+SANS = '-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif'
 MONO = 'ui-monospace,SFMono-Regular,"JetBrains Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace'
+
+LC_QUERY = """
+query($u: String!) {
+  matchedUser(username: $u) {
+    profile { ranking }
+    submitStatsGlobal { acSubmissionNum { difficulty count } }
+    userCalendar { streak totalActiveDays }
+  }
+}
+"""
 
 QUERY = """
 query($login: String!, $merged: String!, $opened: String!) {
@@ -57,6 +72,18 @@ def fetch(token):
     days = [(x["date"], x["contributionCount"]) for w in cal["weeks"] for x in w["contributionDays"]]
     return {"total": cal["totalContributions"], "days": days, "langs": langs,
             "merged": d["merged"]["issueCount"], "opened": d["opened"]["issueCount"]}
+
+
+def fetch_leetcode():
+    body = json.dumps({"query": LC_QUERY, "variables": {"u": build_hero.LEETCODE_USER}}).encode()
+    req = urllib.request.Request("https://leetcode.com/graphql", data=body, headers={
+        "Content-Type": "application/json", "Referer": "https://leetcode.com", "User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        u = json.load(r)["data"]["matchedUser"]
+    solved = {x["difficulty"]: x["count"] for x in u["submitStatsGlobal"]["acSubmissionNum"]}
+    return {"solved": solved["All"], "Easy": solved["Easy"], "Medium": solved["Medium"], "Hard": solved["Hard"],
+            "ranking": u["profile"]["ranking"], "streak": u["userCalendar"]["streak"],
+            "active_days": u["userCalendar"]["totalActiveDays"]}
 
 
 def streaks(days):
@@ -96,10 +123,9 @@ def tiles(data):
         x, y = 28 + (i % 2) * 156, 58 + (i // 2) * 86
         out.append(
             f'<g><rect x="{x}" y="{y}" width="146" height="76" rx="11" fill="{P}" fill-opacity="0.08" stroke="{P}" stroke-opacity="0.3"/>'
-            f'<rect x="{x}" y="{y + 16}" width="3" height="26" rx="1.5" fill="{HOT}"/>'
-            f'<text x="{x + 16}" y="{y + 40}" font-size="29" font-weight="800" fill="url(#num)">{escape(str(val))}</text>'
-            f'<text x="{x + 16}" y="{y + 61}" font-size="9.5" letter-spacing="1.2" fill="{LIGHT}" fill-opacity="0.7">{escape(label)}</text>'
-            f'<animate attributeName="opacity" values="0;0;1" keyTimes="0;{0.1 + i * 0.12:.2f};1" dur="{0.5 + i * 0.15:.2f}s" fill="freeze"/></g>')
+            f'<rect x="{x}" y="{y + 16}" width="3" height="26" rx="1.5" fill="{P}"/>'
+            f'<text x="{x + 16}" y="{y + 40}" font-size="29" font-weight="800" fill="{PALE}">{escape(str(val))}</text>'
+            f'<text x="{x + 16}" y="{y + 61}" font-family=\'{MONO}\' font-size="9.5" letter-spacing="1.2" fill="{LIGHT}" fill-opacity="0.7">{escape(label)}</text></g>')
     return "\n".join(out)
 
 
@@ -112,13 +138,12 @@ def heatmap(data):
         return 0 if not c else 1 + sum(c > k for k in cuts)
 
     x0, y0, s = 356, 82, 12.6
-    out = [f'<text x="{x0}" y="70" font-size="11" letter-spacing="2.5" font-weight="700" fill="{PALE}">ACTIVITY · {HEAT_WEEKS} WEEKS</text>']
+    out = [f'<text x="{x0}" y="70" font-size="11" font-family=\'{MONO}\' letter-spacing="2.5" font-weight="700" fill="{PALE}">ACTIVITY · {HEAT_WEEKS} WEEKS</text>']
     for wi, w in enumerate(weeks):
         for di, c in enumerate(w):
             if c is None:
                 continue
-            out.append(f'<rect x="{x0 + wi * s:.1f}" y="{y0 + di * s:.1f}" width="10" height="10" rx="2.2" fill="{HEAT[level(c)]}">'
-                       f'<animate attributeName="opacity" values="0;0;1" keyTimes="0;{wi / len(weeks) * 0.8:.3f};1" dur="1.4s" fill="freeze"/></rect>')
+            out.append(f'<rect x="{x0 + wi * s:.1f}" y="{y0 + di * s:.1f}" width="10" height="10" rx="2.2" fill="{HEAT[level(c)]}"/>')
     ly = y0 + 7 * s + 22
     out.append(f'<text x="{x0}" y="{ly + 9}" font-size="10" fill="{LIGHT}" fill-opacity="0.65">less</text>')
     for i, col in enumerate(HEAT):
@@ -134,7 +159,7 @@ def languages(data):
     top = langs[:6]
     total = sum(b for _, b in langs) or 1
     x0, w = 696, 276
-    out = [f'<text x="{x0}" y="70" font-size="11" letter-spacing="2.5" font-weight="700" fill="{PALE}">TOP LANGUAGES</text>',
+    out = [f'<text x="{x0}" y="70" font-size="11" font-family=\'{MONO}\' letter-spacing="2.5" font-weight="700" fill="{PALE}">TOP LANGUAGES</text>',
            f'<clipPath id="bar"><rect x="{x0}" y="84" width="{w}" height="10" rx="5"/></clipPath>',
            f'<rect x="{x0}" y="84" width="{w}" height="10" rx="5" fill="#1E1230"/><g clip-path="url(#bar)">']
     x = x0
@@ -142,7 +167,7 @@ def languages(data):
         seg = w * b / total
         out.append(f'<rect x="{x:.1f}" y="84" width="{seg + 0.5:.1f}" height="10" fill="{LANG_SHADES[i]}"/>')
         x += seg
-    out.append(f'<animate attributeName="opacity" values="0;1" dur="0.8s" fill="freeze"/></g>')
+    out.append("</g>")
     for i, (name, b) in enumerate(top):
         cx, cy = x0 + (i % 2) * 142, 122 + (i // 2) * 30
         out.append(f'<circle cx="{cx + 5}" cy="{cy - 4}" r="5" fill="{LANG_SHADES[i]}"/>'
@@ -178,26 +203,23 @@ def trend(data):
         if (i == 0 or d.month != prev.month) and x - last_x > 44 and x < x1 - 20:
             out.append(f'<text x="{x:.1f}" y="{y1 + 20}" font-size="10" fill="{LIGHT}" fill-opacity="0.55">{d.strftime("%b")}</text>')
             last_x = x
-    out.append(f'<path d="{line} L{x1} {y1} L{x0} {y1}Z" fill="url(#area)" opacity="1">'
-               f'<animate attributeName="opacity" values="0;0;1" keyTimes="0;0.5;1" dur="1.8s" fill="freeze"/></path>')
-    out.append(f'<path d="{line}" fill="none" stroke="{LINE}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" '
-               f'pathLength="1" stroke-dasharray="1 1"><animate attributeName="stroke-dashoffset" values="1;0" dur="1.8s" fill="freeze"/></path>')
+    out.append(f'<path d="{line} L{x1} {y1} L{x0} {y1}Z" fill="url(#area)"/>')
+    out.append(f'<path d="{line}" fill="none" stroke="{LINE}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>')
     pi = totals.index(max(totals))
     px, py = pts[pi]
     anchor = "end" if px > x1 - 60 else "start" if px < x0 + 60 else "middle"
     out.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="4.5" fill="{LINE}" stroke="#120920" stroke-width="2"/>'
                f'<text x="{px:.1f}" y="{py - 10:.1f}" text-anchor="{anchor}" font-size="10.5" font-weight="700" fill="{PALE}">peak {max(totals)}</text>')
     lx, ly = pts[-1]
-    out.append(f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="4" fill="{PALE}" stroke="#120920" stroke-width="2">'
-               f'<animate attributeName="r" values="4;5.5;4" dur="2s" repeatCount="indefinite"/></circle>')
+    out.append(f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="4" fill="{PALE}" stroke="#120920" stroke-width="2"/>')
 
     active_weeks = sum(1 for t in totals if t)
     side = [(max(totals), "BEST WEEK"), (f"{sum(totals) / len(totals):.1f}", "WEEKLY AVERAGE"),
             (f"{active_weeks}/{len(totals)}", "ACTIVE WEEKS")]
     for i, (val, label) in enumerate(side):
         y = 72 + i * 42
-        out.append(f'<text x="28" y="{y}" font-size="22" font-weight="800" fill="url(#num)">{val}</text>'
-                   f'<text x="28" y="{y + 16}" font-size="9.5" letter-spacing="1.2" fill="{LIGHT}" fill-opacity="0.7">{label}</text>')
+        out.append(f'<text x="28" y="{y}" font-size="22" font-weight="800" fill="{PALE}">{val}</text>'
+                   f'<text x="28" y="{y + 16}" font-family=\'{MONO}\' font-size="9.5" letter-spacing="1.2" fill="{LIGHT}" fill-opacity="0.7">{label}</text>')
     out.append(f'<path d="M250 58v134" stroke="{P}" stroke-opacity="0.18" stroke-dasharray="3 5"/>')
     return "\n".join(out)
 
@@ -208,19 +230,18 @@ def card(h, title, aside, body, label):
 <defs>
   <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#140A22"/><stop offset="1" stop-color="#0A0612"/></linearGradient>
   <radialGradient id="glow"><stop offset="0" stop-color="{P}" stop-opacity="0.32"/><stop offset="1" stop-color="{P}" stop-opacity="0"/></radialGradient>
-  <linearGradient id="num" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{PALE}"/><stop offset="1" stop-color="{P}"/></linearGradient>
   <linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{LINE}" stop-opacity="0.4"/><stop offset="1" stop-color="{LINE}" stop-opacity="0"/></linearGradient>
   <clipPath id="card"><rect x="1" y="1" width="998" height="{h - 2}" rx="20"/></clipPath>
 </defs>
-<g font-family='{MONO}'>
+<g font-family='{SANS}'>
 <g clip-path="url(#card)">
   <rect width="1000" height="{h}" fill="url(#bg)"/>
   <circle cx="520" cy="0" r="320" fill="url(#glow)"/>
 </g>
 <rect x="1" y="1" width="998" height="{h - 2}" rx="20" fill="none" stroke="{P}" stroke-opacity="0.3" stroke-width="1.5"/>
-<rect x="28" y="24" width="10" height="10" rx="2" transform="rotate(45 33 29)" fill="none" stroke="{HOT}" stroke-width="2"/>
-<text x="46" y="33.5" font-size="11.5" letter-spacing="3.5" fill="{LIGHT}" fill-opacity="0.8">{title}</text>
-<text x="972" y="33.5" text-anchor="end" font-size="10.5" letter-spacing="1" fill="{LIGHT}" fill-opacity="0.5">{aside}</text>
+<rect x="28" y="22" width="4" height="14" rx="2" fill="{P}"/>
+<text x="44" y="33.5" font-family='{MONO}' font-size="11.5" letter-spacing="3.5" fill="{LIGHT}" fill-opacity="0.8">{title}</text>
+<text x="972" y="33.5" text-anchor="end" font-family='{MONO}' font-size="10.5" letter-spacing="1" fill="{LIGHT}" fill-opacity="0.5">{aside}</text>
 {body}
 </g>
 </svg>
@@ -250,7 +271,15 @@ def main():
     assets = Path(__file__).resolve().parent.parent / "assets"
     (assets / "stats.svg").write_text(render(data, datetime.now(timezone.utc).strftime("%d %b %Y")), encoding="utf-8")
     (assets / "activity.svg").write_text(render_activity(data), encoding="utf-8")
-    print(f"wrote stats.svg + activity.svg: {data['total']} contributions, {data['merged']} merged PRs")
+    cache = assets / "leetcode.json"
+    try:
+        lc = fetch_leetcode()
+        cache.write_text(json.dumps(lc, indent=2) + "\n", encoding="utf-8")
+    except Exception as e:  # LeetCode has no official API; keep the last good numbers
+        print(f"LeetCode fetch failed, using cached stats: {e}")
+        lc = json.loads(cache.read_text())
+    build_hero.write(lc)
+    print(f"wrote hero.svg, stats.svg, activity.svg: {data['total']} contributions, {data['merged']} merged PRs")
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@ import build_hero  # noqa: E402
 LOGIN = "samc4e"
 HIDE_LANGS = {"C++"}  # kept out of the language breakdown, as on the old card
 HEAT_WEEKS = 24
+IST = timezone(timedelta(hours=5, minutes=30))  # "updated" dates are shown in local time
 SHORT_NAMES = {"Jupyter Notebook": "Jupyter"}
 
 P, LIGHT, PALE = "#E58AA2", "#C4C4CC", "#F6F6F8"  # blush, frost, snow — from the avatar
@@ -269,12 +270,12 @@ def main():
         raise SystemExit("set GITHUB_TOKEN")
     data = fetch(token)
     assets = Path(__file__).resolve().parent.parent / "assets"
-    (assets / "stats.svg").write_text(render(data, datetime.now(timezone.utc).strftime("%d %b %Y")), encoding="utf-8")
+    (assets / "stats.svg").write_text(render(data, datetime.now(IST).strftime("%d %b %Y")), encoding="utf-8")
     (assets / "activity.svg").write_text(render_activity(data), encoding="utf-8")
     cache = assets / "leetcode.json"
     try:
         lc = fetch_leetcode()
-        lc["fetched_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+        lc["fetched_at"] = datetime.now(IST).strftime("%Y-%m-%d")
         cache.write_text(json.dumps(lc, indent=2) + "\n", encoding="utf-8")
     except Exception as e:  # LeetCode has no official API; keep the last good numbers
         print(f"LeetCode fetch failed, using cached stats: {e}")

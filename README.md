@@ -4,6 +4,8 @@
 
 <img src="assets/stats.svg" width="100%" alt="Live GitHub stats: contributions, merged PRs, activity heatmap and top languages" />
 
+<img src="assets/activity.svg" width="100%" alt="Weekly contribution trend over the last 52 weeks" />
+
 <!--
   Social badges — uncomment and fill in your handle to add a row here:
   <a href="https://linkedin.com/in/YOUR-HANDLE"><img src="https://img.shields.io/badge/LinkedIn-9953EA?style=for-the-badge&logo=linkedin&logoColor=ECDDFD" alt="LinkedIn" /></a>

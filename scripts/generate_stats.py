@@ -7,7 +7,7 @@ import json
 import os
 import urllib.request
 from collections import Counter
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -18,11 +18,12 @@ SHORT_NAMES = {"Jupyter Notebook": "Jupyter"}
 
 P, LIGHT, PALE, HOT = "#9953EA", "#C79DF1", "#ECDDFD", "#D946EF"
 LANG_SHADES = [PALE, LIGHT, P, HOT, "#7C3AED", "#5B21B6"]
-HEAT = ["#1E1230", "#4C1D95", "#7C3AED", "#9953EA", "#D8B4FE"]
+HEAT = ["#1E1230", "#6230B0", "#8B4FE0", "#B98AF4", "#E4D0FD"]  # ramp validated against the card surface
+LINE = "#A66BEE"
 MONO = 'ui-monospace,SFMono-Regular,"JetBrains Mono",Menlo,Consolas,"DejaVu Sans Mono",monospace'
 
 QUERY = """
-query($login: String!, $merged: String!) {
+query($login: String!, $merged: String!, $opened: String!) {
   user(login: $login) {
     repositories(ownerAffiliations: OWNER, isFork: false, privacy: PUBLIC, first: 100) {
       nodes { languages(first: 10, orderBy: {field: SIZE, direction: DESC}) { edges { size node { name } } } }
@@ -31,17 +32,16 @@ query($login: String!, $merged: String!) {
       contributionCalendar { totalContributions weeks { contributionDays { date contributionCount } } }
     }
   }
-  merged: search(query: $merged, type: ISSUE, first: 100) {
-    issueCount
-    nodes { ... on PullRequest { repository { owner { login } } } }
-  }
+  merged: search(query: $merged, type: ISSUE) { issueCount }
+  opened: search(query: $opened, type: ISSUE) { issueCount }
 }
 """
 
 
 def fetch(token):
     body = json.dumps({"query": QUERY, "variables": {
-        "login": LOGIN, "merged": f"is:pr is:merged author:{LOGIN} -user:{LOGIN}"}}).encode()
+        "login": LOGIN, "merged": f"is:pr is:merged author:{LOGIN} -user:{LOGIN}",
+        "opened": f"is:pr author:{LOGIN} -user:{LOGIN}"}}).encode()
     req = urllib.request.Request("https://api.github.com/graphql", data=body, headers={
         "Authorization": f"bearer {token}", "Content-Type": "application/json"})
     with urllib.request.urlopen(req, timeout=30) as r:
@@ -55,9 +55,8 @@ def fetch(token):
             langs[e["node"]["name"]] += e["size"]
     cal = d["user"]["contributionsCollection"]["contributionCalendar"]
     days = [(x["date"], x["contributionCount"]) for w in cal["weeks"] for x in w["contributionDays"]]
-    orgs = {n["repository"]["owner"]["login"] for n in d["merged"]["nodes"] if n}
     return {"total": cal["totalContributions"], "days": days, "langs": langs,
-            "merged": d["merged"]["issueCount"], "orgs": len(orgs)}
+            "merged": d["merged"]["issueCount"], "opened": d["opened"]["issueCount"]}
 
 
 def streaks(days):
@@ -76,12 +75,20 @@ def streaks(days):
     return current, longest
 
 
+def calendar_weeks(days):
+    """Day counts grouped into Sunday-first weeks, as GitHub's calendar does; None pads the first week."""
+    days = sorted(days)
+    pad = (date.fromisoformat(days[0][0]).weekday() + 1) % 7
+    cells = [None] * pad + [c for _, c in days]
+    return [cells[i:i + 7] for i in range(0, len(cells), 7)]
+
+
 def tiles(data):
     current, longest = streaks(data["days"])
     items = [
         (data["total"], "CONTRIBUTIONS 1Y"),
         (data["merged"], "MERGED PRs"),
-        (data["orgs"], "OSS ORGS"),
+        (data["opened"], "PRs OPENED"),
         (f"{current}d", f"STREAK · MAX {longest}d"),
     ]
     out = []
@@ -97,12 +104,7 @@ def tiles(data):
 
 
 def heatmap(data):
-    days = sorted(data["days"])
-    # align to whole weeks (Sunday-first, as GitHub's calendar does) and keep the latest HEAT_WEEKS
-    first = date.fromisoformat(days[0][0])
-    pad = (first.weekday() + 1) % 7
-    cells = [None] * pad + [c for _, c in days]
-    weeks = [cells[i:i + 7] for i in range(0, len(cells), 7)][-HEAT_WEEKS:]
+    weeks = calendar_weeks(data["days"])[-HEAT_WEEKS:]
     nonzero = sorted(c for w in weeks for c in w if c)
     cuts = [nonzero[int(len(nonzero) * q)] for q in (0.25, 0.5, 0.75)] if nonzero else [1, 2, 3]
 
@@ -149,34 +151,95 @@ def languages(data):
     return "\n".join(out)
 
 
-def render(data, updated):
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 240" width="1000" height="240" role="img" aria-label="GitHub stats for {LOGIN}: {data["total"]} contributions in the last year, {data["merged"]} merged upstream pull requests">
+def trend(data):
+    """Single-series area chart of weekly contributions over the last 52 weeks."""
+    weeks = calendar_weeks(data["days"])[-52:]
+    first = date.fromisoformat(sorted(data["days"])[-1][0]) - timedelta(days=(len(weeks) - 1) * 7)
+    first -= timedelta(days=(first.weekday() + 1) % 7)
+    totals = [sum(c or 0 for c in w) for w in weeks]
+    peak = max(totals) or 1
+    step = max(1, -(-peak // 2))  # two gridline steps above zero, rounded to a whole number
+    top = step * 2
+    x0, x1, y0, y1 = 318, 968, 62, 162
+    dx = (x1 - x0) / (len(totals) - 1)
+    pts = [(x0 + i * dx, y1 - (y1 - y0) * t / top) for i, t in enumerate(totals)]
+    line = "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in pts)
+
+    out = []
+    for v in (0, step, top):
+        gy = y1 - (y1 - y0) * v / top
+        out.append(f'<path d="M{x0} {gy:.1f}H{x1}" stroke="{LIGHT}" stroke-opacity="{0.22 if v == 0 else 0.08}"/>'
+                   f'<text x="{x0 - 10}" y="{gy + 3.5:.1f}" text-anchor="end" font-size="10" fill="{LIGHT}" fill-opacity="0.55">{v}</text>')
+    last_x = -99
+    for i in range(len(weeks)):
+        d = first + timedelta(days=7 * i)
+        prev = first + timedelta(days=7 * (i - 1))
+        x = x0 + i * dx
+        if (i == 0 or d.month != prev.month) and x - last_x > 44 and x < x1 - 20:
+            out.append(f'<text x="{x:.1f}" y="{y1 + 20}" font-size="10" fill="{LIGHT}" fill-opacity="0.55">{d.strftime("%b")}</text>')
+            last_x = x
+    out.append(f'<path d="{line} L{x1} {y1} L{x0} {y1}Z" fill="url(#area)" opacity="1">'
+               f'<animate attributeName="opacity" values="0;0;1" keyTimes="0;0.5;1" dur="1.8s" fill="freeze"/></path>')
+    out.append(f'<path d="{line}" fill="none" stroke="{LINE}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" '
+               f'pathLength="1" stroke-dasharray="1 1"><animate attributeName="stroke-dashoffset" values="1;0" dur="1.8s" fill="freeze"/></path>')
+    pi = totals.index(max(totals))
+    px, py = pts[pi]
+    anchor = "end" if px > x1 - 60 else "start" if px < x0 + 60 else "middle"
+    out.append(f'<circle cx="{px:.1f}" cy="{py:.1f}" r="4.5" fill="{LINE}" stroke="#120920" stroke-width="2"/>'
+               f'<text x="{px:.1f}" y="{py - 10:.1f}" text-anchor="{anchor}" font-size="10.5" font-weight="700" fill="{PALE}">peak {max(totals)}</text>')
+    lx, ly = pts[-1]
+    out.append(f'<circle cx="{lx:.1f}" cy="{ly:.1f}" r="4" fill="{PALE}" stroke="#120920" stroke-width="2">'
+               f'<animate attributeName="r" values="4;5.5;4" dur="2s" repeatCount="indefinite"/></circle>')
+
+    active_weeks = sum(1 for t in totals if t)
+    side = [(max(totals), "BEST WEEK"), (f"{sum(totals) / len(totals):.1f}", "WEEKLY AVERAGE"),
+            (f"{active_weeks}/{len(totals)}", "ACTIVE WEEKS")]
+    for i, (val, label) in enumerate(side):
+        y = 72 + i * 42
+        out.append(f'<text x="28" y="{y}" font-size="22" font-weight="800" fill="url(#num)">{val}</text>'
+                   f'<text x="28" y="{y + 16}" font-size="9.5" letter-spacing="1.2" fill="{LIGHT}" fill-opacity="0.7">{label}</text>')
+    out.append(f'<path d="M250 58v134" stroke="{P}" stroke-opacity="0.18" stroke-dasharray="3 5"/>')
+    return "\n".join(out)
+
+
+def card(h, title, aside, body, label):
+    """Shared frame for every generated card: surface, glow, hairline border, header row."""
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 {h}" width="1000" height="{h}" role="img" aria-label="{escape(label)}">
 <defs>
   <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#140A22"/><stop offset="1" stop-color="#0A0612"/></linearGradient>
   <radialGradient id="glow"><stop offset="0" stop-color="{P}" stop-opacity="0.32"/><stop offset="1" stop-color="{P}" stop-opacity="0"/></radialGradient>
   <linearGradient id="num" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{PALE}"/><stop offset="1" stop-color="{P}"/></linearGradient>
-  <linearGradient id="beam" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{HOT}"/><stop offset="1" stop-color="{LIGHT}"/></linearGradient>
-  <clipPath id="card"><rect x="1" y="1" width="998" height="238" rx="20"/></clipPath>
+  <linearGradient id="area" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="{LINE}" stop-opacity="0.4"/><stop offset="1" stop-color="{LINE}" stop-opacity="0"/></linearGradient>
+  <clipPath id="card"><rect x="1" y="1" width="998" height="{h - 2}" rx="20"/></clipPath>
 </defs>
 <g font-family='{MONO}'>
 <g clip-path="url(#card)">
-  <rect width="1000" height="240" fill="url(#bg)"/>
+  <rect width="1000" height="{h}" fill="url(#bg)"/>
   <circle cx="520" cy="0" r="320" fill="url(#glow)"/>
 </g>
-<rect x="1" y="1" width="998" height="238" rx="20" fill="none" stroke="{P}" stroke-opacity="0.3" stroke-width="1.5"/>
-<rect x="1" y="1" width="998" height="238" rx="20" fill="none" stroke="url(#beam)" stroke-width="2.2" stroke-linecap="round" pathLength="1000" stroke-dasharray="90 410">
-  <animate attributeName="stroke-dashoffset" values="0;1000" dur="9s" repeatCount="indefinite"/>
-</rect>
+<rect x="1" y="1" width="998" height="{h - 2}" rx="20" fill="none" stroke="{P}" stroke-opacity="0.3" stroke-width="1.5"/>
 <rect x="28" y="24" width="10" height="10" rx="2" transform="rotate(45 33 29)" fill="none" stroke="{HOT}" stroke-width="2"/>
-<text x="46" y="33.5" font-size="11.5" letter-spacing="3.5" fill="{LIGHT}" fill-opacity="0.8">GITHUB.COM/{LOGIN.upper()} <tspan fill-opacity="0.5">· LIVE STATS</tspan></text>
-<text x="972" y="33.5" text-anchor="end" font-size="10.5" letter-spacing="1" fill="{LIGHT}" fill-opacity="0.5">auto-updated {updated}</text>
-<path d="M336 58v162M672 58v162" stroke="{P}" stroke-opacity="0.18" stroke-dasharray="3 5"/>
-{tiles(data)}
-{heatmap(data)}
-{languages(data)}
+<text x="46" y="33.5" font-size="11.5" letter-spacing="3.5" fill="{LIGHT}" fill-opacity="0.8">{title}</text>
+<text x="972" y="33.5" text-anchor="end" font-size="10.5" letter-spacing="1" fill="{LIGHT}" fill-opacity="0.5">{aside}</text>
+{body}
 </g>
 </svg>
 '''
+
+
+def render(data, updated):
+    body = (f'<path d="M336 58v162M672 58v162" stroke="{P}" stroke-opacity="0.18" stroke-dasharray="3 5"/>\n'
+            f'{tiles(data)}\n{heatmap(data)}\n{languages(data)}')
+    return card(240, f'GITHUB.COM/{LOGIN.upper()} <tspan fill-opacity="0.5">· LIVE STATS</tspan>', f"auto-updated {updated}", body,
+                f'GitHub stats for {LOGIN}: {data["total"]} contributions in the last year, {data["merged"]} merged pull requests')
+
+
+def render_activity(data):
+    weeks = calendar_weeks(data["days"])[-52:]
+    total = sum(c or 0 for w in weeks for c in w)
+    return card(210, 'CONTRIBUTION TREND <tspan fill-opacity="0.5">· WEEKLY, LAST 52 WEEKS</tspan>',
+                f"{total} contributions", trend(data),
+                f"Weekly contributions over the last 52 weeks for {LOGIN}, {total} in total")
 
 
 def main():
@@ -184,9 +247,10 @@ def main():
     if not token:
         raise SystemExit("set GITHUB_TOKEN")
     data = fetch(token)
-    out = Path(__file__).resolve().parent.parent / "assets" / "stats.svg"
-    out.write_text(render(data, datetime.now(timezone.utc).strftime("%d %b %Y")), encoding="utf-8")
-    print(f"wrote {out}: {data['total']} contributions, {data['merged']} merged PRs")
+    assets = Path(__file__).resolve().parent.parent / "assets"
+    (assets / "stats.svg").write_text(render(data, datetime.now(timezone.utc).strftime("%d %b %Y")), encoding="utf-8")
+    (assets / "activity.svg").write_text(render_activity(data), encoding="utf-8")
+    print(f"wrote stats.svg + activity.svg: {data['total']} contributions, {data['merged']} merged PRs")
 
 
 if __name__ == "__main__":

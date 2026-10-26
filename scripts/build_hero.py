@@ -12,17 +12,17 @@ ROLES = [
 ]
 META = [
     "B.Tech CSE '28  ·  SGGSIE&T, Nanded",
-    "Now: webpack-doc-kit PRs + daily DSA",
-    "Code that still reads well six months later",
+    "Focused on open source and daily problem solving",
+    "Turning ideas into reliable, well-crafted software",
 ]
-# (prompt, text) — prompt "$" lines are commands, "✓" lines are merged work
+# (prompt, text) — prompt "$" lines are commands, "✓" lines are highlights
 TERMINAL = [
     ("$", "whoami"),
     ("", "sameer chore — cse '28, sggsie&t"),
-    ("$", "git log --author=sameer --merged"),
-    ("✓", "webpack / webpack-doc-kit"),
-    ("✓", "fossasia / eventyay · voxbento"),
-    ("✓", "OpenVTC / openvtc"),
+    ("$", "cat focus.txt"),
+    ("✓", "open-source contributions"),
+    ("✓", "clean, scalable software"),
+    ("✓", "data structures & algorithms"),
     ("$", "echo $NEXT"),
     ("", "ai/ml · system design"),
 ]
@@ -74,7 +74,7 @@ def name():
     txt, x, y, tl = "SAMEER CHORE", 46, 134, 476
     common = f'x="{x}" y="{y}" font-size="58" font-weight="800" textLength="{tl}" lengthAdjust="spacingAndGlyphs"'
     glitch = []
-    for color, dx in ((HOT, -3), ("#22D3EE", 3)):
+    for color, dx in ((HOT, -3), (LIGHT, 3)):
         glitch.append(
             f'<text {common} fill="{color}" opacity="0">{txt}'
             f'<animate attributeName="opacity" values="0;0.75;0;0.6;0;0" '
@@ -153,7 +153,6 @@ def build():
     <animateTransform attributeName="gradientTransform" type="translate" values="-0.3 0;0.3 0;-0.3 0" dur="7s" repeatCount="indefinite"/>
   </linearGradient>
   <linearGradient id="rule" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="{HOT}"/><stop offset="0.4" stop-color="{P}" stop-opacity="0.6"/><stop offset="1" stop-color="{P}" stop-opacity="0"/></linearGradient>
-  <linearGradient id="beam" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="{HOT}"/><stop offset="1" stop-color="{LIGHT}"/></linearGradient>
   <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="{LIGHT}" fill-opacity="0.13"/></pattern>
   <linearGradient id="fadeGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="0.06" stop-color="#fff"/><stop offset="0.94" stop-color="#fff"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
   <mask id="fadeX"><rect width="{W}" height="{H}" fill="url(#fadeGrad)"/></mask>
@@ -175,9 +174,6 @@ def build():
   </rect>
 </g>
 <rect x="1" y="1" width="998" height="378" rx="20" fill="none" stroke="{P}" stroke-opacity="0.3" stroke-width="1.5"/>
-<rect x="1" y="1" width="998" height="378" rx="20" fill="none" stroke="url(#beam)" stroke-width="2.2" stroke-linecap="round" pathLength="1000" stroke-dasharray="110 390">
-  <animate attributeName="stroke-dashoffset" values="1000;0" dur="9s" repeatCount="indefinite"/>
-</rect>
 
 <rect x="48" y="38" width="12" height="12" rx="2" transform="rotate(45 54 44)" fill="none" stroke="{HOT}" stroke-width="2"/>
 <text x="70" y="49" font-size="12" letter-spacing="4" fill="{LIGHT}" fill-opacity="0.75">SAMC4E <tspan fill-opacity="0.45">/ README.md</tspan></text>

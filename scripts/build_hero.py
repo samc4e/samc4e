@@ -4,7 +4,9 @@
 generate_stats.py refreshes the LeetCode numbers daily; to change the text, edit below and run
 python3 scripts/build_hero.py
 """
+import hashlib
 import json
+import re
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -106,6 +108,17 @@ def write(lc):
     (ASSETS / "hero.svg").write_text(build(lc), encoding="utf-8")
 
 
+def bust_cache():
+    """Stamp each card's link in README.md with its content hash, so browsers fetch a changed card immediately."""
+    readme = ASSETS.parent / "README.md"
+    text = readme.read_text(encoding="utf-8")
+    for svg in ("hero", "stats", "activity"):
+        digest = hashlib.sha1((ASSETS / f"{svg}.svg").read_bytes()).hexdigest()[:10]
+        text = re.sub(rf'assets/{svg}\.svg(\?v=[0-9a-f]+)?"', f'assets/{svg}.svg?v={digest}"', text)
+    readme.write_text(text, encoding="utf-8")
+
+
 if __name__ == "__main__":
     write(json.loads((ASSETS / "leetcode.json").read_text()))
+    bust_cache()
     print("wrote assets/hero.svg")

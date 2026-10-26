@@ -274,11 +274,13 @@ def main():
     cache = assets / "leetcode.json"
     try:
         lc = fetch_leetcode()
+        lc["fetched_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
         cache.write_text(json.dumps(lc, indent=2) + "\n", encoding="utf-8")
     except Exception as e:  # LeetCode has no official API; keep the last good numbers
         print(f"LeetCode fetch failed, using cached stats: {e}")
         lc = json.loads(cache.read_text())
     build_hero.write(lc)
+    build_hero.bust_cache()
     print(f"wrote hero.svg, stats.svg, activity.svg: {data['total']} contributions, {data['merged']} merged PRs")
 
 

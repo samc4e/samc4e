@@ -195,17 +195,17 @@
 <clipPath id="bar"><rect x="696" y="84" width="276" height="10" rx="5"/></clipPath>
 <rect x="696" y="84" width="276" height="10" rx="5" fill="#202026"/><g clip-path="url(#bar)">
 <rect x="696.0" y="84" width="137.6" height="10" fill="#FCE7EC"/>
-<rect x="833.1" y="84" width="74.1" height="10" fill="#F2B8C6"/>
-<rect x="906.6" y="84" width="39.8" height="10" fill="#E58AA2"/>
+<rect x="833.1" y="84" width="74.0" height="10" fill="#F2B8C6"/>
+<rect x="906.7" y="84" width="39.8" height="10" fill="#E58AA2"/>
 <rect x="945.9" y="84" width="14.9" height="10" fill="#C9607E"/>
 <rect x="960.3" y="84" width="10.0" height="10" fill="#A3405F"/>
 <rect x="969.8" y="84" width="1.5" height="10" fill="#7A2A44"/>
 </g>
 <circle cx="701" cy="118" r="5" fill="#FCE7EC"/><text x="712" y="122" font-size="12.5" fill="#F6F6F8">Python<tspan fill="#C4C4CC" fill-opacity="0.6" font-size="11"> 49.7%</tspan></text>
-<circle cx="843" cy="118" r="5" fill="#F2B8C6"/><text x="854" y="122" font-size="12.5" fill="#F6F6F8">JavaScript<tspan fill="#C4C4CC" fill-opacity="0.6" font-size="11"> 26.7%</tspan></text>
+<circle cx="843" cy="118" r="5" fill="#F2B8C6"/><text x="854" y="122" font-size="12.5" fill="#F6F6F8">JavaScript<tspan fill="#C4C4CC" fill-opacity="0.6" font-size="11"> 26.6%</tspan></text>
 <circle cx="701" cy="148" r="5" fill="#E58AA2"/><text x="712" y="152" font-size="12.5" fill="#F6F6F8">CSS<tspan fill="#C4C4CC" fill-opacity="0.6" font-size="11"> 14.2%</tspan></text>
 <circle cx="843" cy="148" r="5" fill="#C9607E"/><text x="854" y="152" font-size="12.5" fill="#F6F6F8">HTML<tspan fill="#C4C4CC" fill-opacity="0.6" font-size="11"> 5.2%</tspan></text>
-<circle cx="701" cy="178" r="5" fill="#A3405F"/><text x="712" y="182" font-size="12.5" fill="#F6F6F8">Jupyter<tspan fill="#C4C4CC" fill-opacity="0.6" font-size="11"> 3.5%</tspan></text>
+<circle cx="701" cy="178" r="5" fill="#A3405F"/><text x="712" y="182" font-size="12.5" fill="#F6F6F8">Jupyter<tspan fill="#C4C4CC" fill-opacity="0.6" font-size="11"> 3.4%</tspan></text>
 <circle cx="843" cy="178" r="5" fill="#7A2A44"/><text x="854" y="182" font-size="12.5" fill="#F6F6F8">Shell<tspan fill="#C4C4CC" fill-opacity="0.6" font-size="11"> 0.4%</tspan></text>
 </g>
 </svg>

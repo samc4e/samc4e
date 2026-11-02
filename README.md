@@ -1,8 +1,8 @@
 <div align="center">
 
-<a href="https://github.com/samc4e?tab=repositories"><img src="assets/hero.svg?v=bd516afdee" width="100%" alt="Sameer Chore — Software Developer and Open Source Contributor, with LeetCode stats" /></a>
+<a href="https://github.com/samc4e?tab=repositories"><img src="assets/hero.svg?v=22f70ea2ef" width="100%" alt="Sameer Chore — Software Developer and Open Source Contributor, with LeetCode stats" /></a>
 
-<img src="assets/stats.svg?v=df9e457e11" width="100%" alt="Live GitHub stats: contributions, merged PRs, activity heatmap and top languages" />
+<img src="assets/stats.svg?v=33f4835c93" width="100%" alt="Live GitHub stats: contributions, merged PRs, activity heatmap and top languages" />
 
 <img src="assets/activity.svg?v=e44c51bcce" width="100%" alt="Weekly contribution trend over the last 52 weeks" />
 

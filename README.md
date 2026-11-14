@@ -1,10 +1,10 @@
 <div align="center">
 
-<a href="https://github.com/samc4e?tab=repositories"><img src="assets/hero.svg?v=a941239065" width="100%" alt="Sameer Chore — Software Developer and Open Source Contributor, with LeetCode stats" /></a>
+<a href="https://github.com/samc4e?tab=repositories"><img src="assets/hero.svg?v=fa8807cb29" width="100%" alt="Sameer Chore — Software Developer and Open Source Contributor, with LeetCode stats" /></a>
 
-<img src="assets/stats.svg?v=65486d7050" width="100%" alt="Live GitHub stats: contributions, merged PRs, activity heatmap and top languages" />
+<img src="assets/stats.svg?v=bf662adcb8" width="100%" alt="Live GitHub stats: contributions, merged PRs, activity heatmap and top languages" />
 
-<img src="assets/activity.svg?v=e9fb8672c6" width="100%" alt="Weekly contribution trend over the last 52 weeks" />
+<img src="assets/activity.svg?v=5cb94d5af1" width="100%" alt="Weekly contribution trend over the last 52 weeks" />
 
 <!--
   Social badges — uncomment and fill in your handle to add a row here:

@@ -2,9 +2,9 @@
 
 <a href="https://github.com/samc4e?tab=repositories"><img src="assets/hero.svg?v=187ccfba25" width="100%" alt="Sameer Chore — Software Developer and Open Source Contributor, with LeetCode stats" /></a>
 
-<img src="assets/stats.svg?v=4c6a8f32be" width="100%" alt="Live GitHub stats: contributions, merged PRs, activity heatmap and top languages" />
+<img src="assets/stats.svg?v=c4613bcc1b" width="100%" alt="Live GitHub stats: contributions, merged PRs, activity heatmap and top languages" />
 
-<img src="assets/activity.svg?v=39ea188a53" width="100%" alt="Weekly contribution trend over the last 52 weeks" />
+<img src="assets/activity.svg?v=2c5a3e6816" width="100%" alt="Weekly contribution trend over the last 52 weeks" />
 
 <!--
   Social badges — uncomment and fill in your handle to add a row here:
